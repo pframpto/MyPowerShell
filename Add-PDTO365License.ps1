@@ -6,9 +6,9 @@
 
    This script can be executed on any machine that has the MSOnline module installed.
 .EXAMPLE
-   Add-DOJO365License -EmailAddress Joe.User@company.com -licenses PDT:STANDARDPACK
+   Add-PDTO365License -EmailAddress Joe.User@company.com -licenses PDT:STANDARDPACK
 .EXAMPLE
-   Add-DOJO365License -EmailAddress Joe.User@company.com -licenses PDT:ATP_ENTERPRISE,PDT:FLOW_FREE 
+   Add-PDTO365License -EmailAddress Joe.User@company.com -licenses PDT:ATP_ENTERPRISE,PDT:FLOW_FREE 
 #>
 Function Add-DOJO365License {
 
