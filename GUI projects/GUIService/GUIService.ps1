@@ -28,4 +28,73 @@ Add-Type -AssemblyName PresentationFramework
 
 $NR = (New-Object system.xml.xmlnodeReader $Form)
 $win =[Windows.markup.xamlreader]::Load($NR)
+#region Assign Variables
+$txtService = $win.FindName("txtService")
+$btnQuery = $win.FindName("btnGetService")
+$lblName = $win.FindName("lblName")
+$lblStatus = $win.FindName("lblStatus")
+$lblDisplayName = $win.FindName("lblDisplayName")
+$lblServiceType = $win.FindName("lblServiceType")
+$lblStartUpType = $win.FindName("lblStartUpType")
+$btnStart = $win.FindName("btnStart")
+$btnRestartService = $win.FindName("btnRestartService")
+$cbxServiceType = $win.FindName("cbxServiceType")
+$cbxStartType = $win.FindName("cbxStartType")
+#endregion
+
+
+$btnStart.Opacity = 0
+$btnStart.IsEnabled = $false
+$btnRestartService.Opacity = 0
+$btnRestartService.IsEnabled = $false
+#region Buttons
+$btnQuery.add_click({
+    $lblName.Content = (get-service $txtService.text.trim()).name
+    $lblStatus.Content = (get-service $txtService.text.trim()).Status
+    $lblDisplayName.Content = (get-service $txtService.text.trim()).DisplayName
+    
+    if($cbxStartType.IsChecked ){
+        $lblStartUpType.Content = (get-service $txtService.text.trim()).StartType
+    }else{
+        $lblStartUpType.Content = ""
+    }
+    if($cbxServiceType.IsChecked){
+        $lblServiceType.content = (get-service $txtService.text.trim()).ServiceType
+    }else {
+        $lblServiceType.content = ""
+    } 
+    if((get-service $txtService.text.trim()).Status -eq "Running"){
+        $btnStart.Content = "Stop Service"
+    }else {
+        $btnStart.Content = "Start Service"
+    }
+    $btnStart.IsEnabled = $true 
+    $btnStart.Opacity = 100
+    $btnRestartService.IsEnabled = $true 
+    $btnRestartService.Opacity = 100
+})
+
+$btnStart.add_click({
+    $status = (get-service $txtService.text.trim()).Status
+    $name = (get-service $txtService.text.trim()).name
+    if($status -eq "Stopped"){
+        
+        [System.Windows.MessageBox]::Show("running start service on $name", "notice")
+        Start-Service -Name $name
+    }else {
+        [System.Windows.MessageBox]::Show("Running Stop Service on $name", "notice")
+        Stop-Service -Name $name
+    }
+})
+
+$btnRestartService.add_click({
+    $name = (get-service $txtService.text.trim()).name
+    Restart-Service -Name $name
+})
+#endregion
+
+
+
+
+#bottom line
 $win.showdialog()
