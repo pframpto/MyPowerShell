@@ -1,0 +1,4 @@
+creating a form that shows standard output for a services (bits by default)
+It will then have optional ckeckboxes to display optional properties like startup type.
+There will be buttons to stop and start the service 
+the buttons should show up after pressing the check button.
