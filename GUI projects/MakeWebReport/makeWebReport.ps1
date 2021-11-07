@@ -49,6 +49,7 @@ Add-Type -AssemblyName PresentationFramework
         <CheckBox Name="chMem" Content="Top Processes by Memory" HorizontalAlignment="Left" Height="30" Margin="172,71,0,0" VerticalAlignment="Top" Width="160"/>
         <CheckBox Name="chOptFeatures" Content="Optional Features" HorizontalAlignment="Left" Height="30" Margin="359,71,0,0" VerticalAlignment="Top" Width="117"/>
         <CheckBox Name="chPrinter" Content="Printers" HorizontalAlignment="Left" Height="30" Margin="501,71,0,0" VerticalAlignment="Top" Width="150"/>
+        <Button Name="btnShowReport" Content="Show Report" HorizontalAlignment="Left" Height="30" Margin="501,140,0,0" VerticalAlignment="Top" Width="150" IsEnabled="False"/>
 
     </Grid>
     </Window>
@@ -64,7 +65,7 @@ $chCPU = $win.FindName("chCPU")
 $chMem = $win.FindName("chMem")
 $chOptFeatures =$win.FindName("chOptFeatures")
 $chPrinter = $win.FindName("chPrinter")
-#$cpu
+$btnShowReport = $win.FindName("btnShowReport")
 #endregion
 
 Set-Location((Get-ChildItem ($MyInvocation.InvocationName)).DirectoryName)
@@ -94,8 +95,13 @@ $btnReport.add_click({
 
     $theComputer = $txtComputer.text.trim()
     $hheader = ConvertTo-Html -PreContent "<h1>Reporting on $theComputer</h1>"  
-    ConvertTo-Html -Body "$hheader $cpu $mem $optFeatures $printers" -Head $style   | Out-File test.html
+    ConvertTo-Html -Body "$hheader $cpu $mem $optFeatures $printers" -Head $style   | Out-File Report.html
+    $btnShowReport.IsEnabled = $true
 })
+$btnShowReport.add_click({
+    ii .\Report.html
+})
+
 #Last line of Code
 $win.showdialog()
 
