@@ -109,7 +109,12 @@ if($step -eq 1){
 
 $preReqs.Add_Click({
     write-verbose "The prerequisites are installing." -Verbose
-    powershell.exe -executionpolicy bypass .\install-prereqs.ps1
+    Start-Job -Name jobDS -ScriptBlock {Install-WindowsFeature AD-Domain-Services -IncludeManagementTools}
+    
+    Start-Job -Name jobRSAT -ScriptBlock {Install-WindowsFeature RSAT-AD-Tools -IncludeAllSubFeature}
+    wait-job -Name jobDS
+    Wait-Job -Name jobRSAT
+    "2" | out-file ./1.txt
     $installDom.IsEnabled = $true
     $smpwd.IsEnabled = $true
     $DomanName.IsEnabled = $true
