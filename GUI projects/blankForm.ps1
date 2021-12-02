@@ -1,4 +1,8 @@
-﻿Add-Type -AssemblyName PresentationFramework
+﻿#region functions
+
+#endregion
+
+Add-Type -AssemblyName PresentationFramework
 
 [xml]$Form = @"
     <Window xmlns ="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
@@ -8,6 +12,16 @@
 
 $NR = (New-Object system.xml.xmlnodeReader $Form)
 $win =[Windows.markup.xamlreader]::Load($NR)
+#region assign variables
+
+#endregion
+
+#region buttons
+
+#endregion
+
+
+#Last Line
 $win.showdialog()
 
 break;
