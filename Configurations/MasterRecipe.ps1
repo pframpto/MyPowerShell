@@ -6,6 +6,7 @@ using the needed parts.
 Just select what is needed and then Run selection F8 from the ise.
 #>
 
+Set-TimeZone -Id 'E. Australia Standard Time'
 
 Install-PackageProvider -Name NuGet -Force
 
