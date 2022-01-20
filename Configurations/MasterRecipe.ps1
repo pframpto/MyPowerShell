@@ -8,6 +8,14 @@ Just select what is needed and then Run selection F8 from the ise.
 
 Set-TimeZone -Id 'E. Australia Standard Time'
 
+
+#region set networking
+
+New-NetIPAddress -IPAddress 192.168.1.106 -DefaultGateway 192.168.1.1  -PrefixLength 24 -InterfaceAlias "ethernet" 
+Set-DnsClientServerAddress -InterfaceAlias "Ethernet" -ServerAddresses 8.8.8.8
+
+#endregion
+
 Install-PackageProvider -Name NuGet -Force
 
 #region install chrome
@@ -66,7 +74,8 @@ $env:Path += ";C:\PythonInstallations\python3.9"
 #region install php
 
 mkdir c:\temp
-Invoke-WebRequest -Uri 'https://windows.php.net/downloads/releases/php-8.1.1-Win32-vs16-x64.zip' -OutFile c:\temp\php.zip
+#if the url does not work go to site and update it.
+Invoke-WebRequest -Uri 'https://windows.php.net/downloads/releases/php-8.1.2-Win32-vs16-x64.zip' -OutFile c:\temp\php.zip
 Expand-Archive -LiteralPath 'C:\temp\php.Zip' -DestinationPath C:\PHP -Force
 $env:path += ";c:\php"
 
@@ -76,6 +85,10 @@ New-Item -Path C:\Users\Administrator\www -Name test.php -Value '<html><head></h
 start msedge http://localhost:4000/www/test.php
 
 php -S localhost:4000
+
+#if you get a vc140 something error here download https://aka.ms/vs/17/release/vc_redist.x64.exe and this might fix it.
+# Invoke-WebRequest -Uri https://aka.ms/vs/17/release/vc_redist.x64.exe -OutFile C:\temp\vc_redist.x64.exe 
+
 
 #endregion
 
