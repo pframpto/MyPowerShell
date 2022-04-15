@@ -92,9 +92,24 @@ php -S localhost:4000
 
 #endregion
 
+#region install node.js
+Install-Module -Name nvm
+
+Install-NodeVersion 
+
+#endregion
+
+#region install react app
+#First install nodejs then from inside vscode run these commands.
 
 
 
+<#
+npx create-react-app my-app
+cd my-app
+npm start
+#>
+#endregion
 
 
 
