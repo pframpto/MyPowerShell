@@ -95,7 +95,7 @@ php -S localhost:4000
 #region install node.js
 Install-Module -Name nvm
 
-Install-NodeVersion 
+Install-NodeVersion v16
 
 #endregion
 
