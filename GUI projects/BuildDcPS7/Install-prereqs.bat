@@ -1,0 +1,1 @@
+Powershell.exe -ExecutionPolicy Bypass -Noprofile -file "%~dnp0.ps1"
