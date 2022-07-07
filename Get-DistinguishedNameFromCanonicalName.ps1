@@ -13,4 +13,3 @@
 
 Get-DNFromCName -canonicalName "company.pri/NSW/chris.apperley"
 
-canonical

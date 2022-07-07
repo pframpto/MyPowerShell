@@ -18,6 +18,17 @@ Set-DnsClientServerAddress -InterfaceAlias "Ethernet" -ServerAddresses 8.8.8.8
 
 Install-PackageProvider -Name NuGet -Force
 
+#region install powershell 7
+
+if($PSVersionTable.PSVersion.Major -eq 7){
+    Write-verbose "Powershell7 is already installed"
+}else{
+    (Invoke-Expression "& { $(Invoke-RestMethod https://aka.ms/install-powershell.ps1) } -UseMSI")
+}
+
+
+#end region
+
 #region install chrome
 
 Install-module xchrome -force
