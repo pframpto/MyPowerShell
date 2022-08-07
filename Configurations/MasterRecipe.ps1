@@ -31,8 +31,7 @@ if($PSVersionTable.PSVersion.Major -eq 7){
 
 #region alt way of installing PS7
 install-module PSReleaseTools
-install-PowerShell -EnableRemoting -EnableContextMenu
-	#and maybe quiet flag.
+install-PowerShell -EnableRemoting -EnableContextMenu -Mode Quiet
 
 #endregion
 #region install chrome
