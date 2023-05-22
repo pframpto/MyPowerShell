@@ -66,7 +66,8 @@ new-GPLink -name NSWUsers -Target "OU=NSW,DC=company,DC=pri" -LinkEnabled Yes
     domain.msc # AD domains and trusts
     dsac.exe #Active Director Administrative Center
     dssite.msc # Active Directory Sites and Services
-
+    gpedit.msc # local group policy editor
+    gpmc.msc # group policy management console
 #endregion
 
 #region install AD
