@@ -431,3 +431,5 @@ New-AzResourceGroupDeployment `
   -TemplateFile $templateFile `
   -storageName "paulsarmtempleddstonname" `
   -storageSKU Standard_LRS
+
+  New-AzRoleDefinition -InputFile $HOME/az104-03d-CustomRoleDefinition.json 
