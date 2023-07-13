@@ -433,3 +433,32 @@ New-AzResourceGroupDeployment `
   -storageSKU Standard_LRS
 
   New-AzRoleDefinition -InputFile $HOME/az104-03d-CustomRoleDefinition.json 
+
+  ###############Crete users and groups in az###########
+# create a new user cli
+az ad user create
+
+# create a new user PS
+New-AzureADUser
+
+#You can bulk create member users and guests accounts. 
+# The following example shows how to bulk invite guest users.
+$invitations = import-csv c:\bulkinvite\invitations.csv
+
+$messageInfo = New-Object Microsoft.Open.MSGraph.Model.InvitedUserMessageInfo
+
+$messageInfo.customizedMessageBody = "Hello. You are invited to the Contoso organization."
+
+foreach ($email in $invitations){
+  New-AzureADMSInvitation `
+    -InvitedUserEmailAddress $email.InvitedUserEmailAddress `
+    -InvitedUserDisplayName $email.Name `
+    -InviteRedirectUrl https://myapps.microsoft.com `
+    -InvitedUserMessageInfo $messageInfo `
+    -SendInvitationMessage $true
+}
+
+# Delete user accounts
+#In PowerShell, run the cmdlet Remove-AzADUser. 
+#In the Azure CLI, run the cmdlet az ad user delete.
+
