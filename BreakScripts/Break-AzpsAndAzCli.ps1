@@ -462,3 +462,57 @@ foreach ($email in $invitations){
 #In PowerShell, run the cmdlet Remove-AzADUser. 
 #In the Azure CLI, run the cmdlet az ad user delete.
 
+#You can also create a blob container with PowerShell by using the New-AzStorageContainer command.
+<#
+export STORAGENAME=medicalrecords$RANDOM
+
+az storage account create \
+    --name $STORAGENAME \
+    --access-tier hot \
+    --kind StorageV2 \
+    --resource-group learn-40d6d915-28e1-4e3c-99ad-6769a841b765
+
+#>
+
+
+
+<#
+Create a container under the storage account for storing the images.
+
+
+az storage container create \
+    --name patient-images \
+    --account-name $STORAGENAME \
+    --public-access off
+
+
+Clone your team's existing web app. This repository contains example images used by your team for testing.
+git clone https://github.com/MicrosoftDocs/mslearn-control-access-to-azure-storage-with-sas.git sas
+#>
+<#
+Use the Azure CLI upload-batch command to upload the images into your storage account.
+
+az storage blob upload-batch \
+    --source sas \
+    --destination patient-images \
+    --account-name $STORAGENAME \
+    --pattern *.jpg
+#>
+
+##################Create a storage account and add a blob
+
+az storage account create `
+--name  mslearn$RANDOM `
+--resource-group learn-80dc492b-3934-440f-ad11-84686b287851 `
+--sku Standard_GRS `
+--kind StorageV2
+
+########Create a storage account with Azure Data Lake Storage Gen2 capabilities
+# az storage account create `
+#     --name dlstoragetest$RANDOM `
+#     --resource-group learn-80dc492b-3934-440f-ad11-84686b287851 `
+#     --location westus2 `
+#     --sku Standard_LRS `
+#     --kind StorageV2 `
+#     --hns
+
