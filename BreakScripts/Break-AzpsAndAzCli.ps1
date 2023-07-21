@@ -516,3 +516,549 @@ az storage account create `
 #     --kind StorageV2 `
 #     --hns
 
+####Create the CoreServicesVnet virtual network
+<#
+az network vnet create \
+    --resource-group learn-cf33377c-d7ef-420d-a9ab-344b548047da \
+    --name CoreServicesVnet \
+    --address-prefixes 10.20.0.0/16 \
+    --location westus
+
+Now, let's create the subnets that we need for the planned resources in the virtual network:
+
+Azure CLI
+
+Copy
+az network vnet subnet create \
+    --resource-group learn-cf33377c-d7ef-420d-a9ab-344b548047da \
+    --vnet-name CoreServicesVnet \
+    --name GatewaySubnet \
+    --address-prefixes 10.20.0.0/27
+
+az network vnet subnet create \
+    --resource-group learn-cf33377c-d7ef-420d-a9ab-344b548047da \
+    --vnet-name CoreServicesVnet \
+    --name SharedServicesSubnet \
+    --address-prefixes 10.20.10.0/24
+
+az network vnet subnet create \
+    --resource-group learn-cf33377c-d7ef-420d-a9ab-344b548047da \
+    --vnet-name CoreServicesVnet \
+    --name DatabaseSubnet \
+    --address-prefixes 10.20.20.0/24
+
+az network vnet subnet create \
+    --resource-group learn-cf33377c-d7ef-420d-a9ab-344b548047da \
+    --vnet-name CoreServicesVnet \
+    --name PublicWebServiceSubnet \
+    --address-prefixes 10.20.30.0/24
+Let's take a look at what we've created. Run this command to show all the subnets that we configured:
+
+Azure CLI
+
+Copy
+az network vnet subnet list \
+    --resource-group learn-cf33377c-d7ef-420d-a9ab-344b548047da \
+    --vnet-name CoreServicesVnet \
+    --output table
+You should see the following subnets listed:
+
+Output
+
+Copy
+AddressPrefix    Name                    PrivateEndpointNetworkPolicies    PrivateLinkServiceNetworkPolicies    ProvisioningState    ResourceGroup
+---------------  ----------------------  --------------------------------  -----------------------------------  -------------------  -------------------------------------------
+10.20.0.0/27     GatewaySubnet           Enabled                           Enabled                              Succeeded            learn-cf33377c-d7ef-420d-a9ab-344b548047da
+10.20.10.0/24    SharedServicesSubnet    Enabled                           Enabled                              Succeeded            learn-cf33377c-d7ef-420d-a9ab-344b548047da
+10.20.20.0/24    DatabaseSubnet          Enabled                           Enabled                              Succeeded            learn-cf33377c-d7ef-420d-a9ab-344b548047da
+10.20.30.0/24    PublicWebServiceSubnet  Enabled                           Enabled                              Succeeded            learn-cf33377c-d7ef-420d-a9ab-344b548047da
+#>
+
+<# creating vnet with a subnet.
+az network vnet create \
+    --resource-group learn-65304589-58f1-47fe-8781-e109d60d4900 \
+    --name SalesVNet \
+    --address-prefixes 10.1.0.0/16 \
+    --subnet-name Apps \
+    --subnet-prefixes 10.1.1.0/24 \
+    --location northeurope
+
+az network vnet list --query "[?contains(provisioningState, 'Succeeded')]" --output table
+
+#>
+
+###Create virtual machines in each virtual network
+<#
+az vm create \
+    --resource-group learn-65304589-58f1-47fe-8781-e109d60d4900 \
+    --no-wait \
+    --name SalesVM \
+    --location northeurope \
+    --vnet-name SalesVNet \
+    --subnet Apps \
+    --image UbuntuLTS \
+    --admin-username azureuser \
+    --admin-password <password>
+
+
+
+watch -d -n 5 "az vm list \
+    --resource-group learn-65304589-58f1-47fe-8781-e109d60d4900 \
+    --show-details \
+    --query '[*].{Name:name, ProvisioningState:provisioningState, PowerState:powerState}' \
+    --output table"
+
+
+#>
+
+###Create virtual network peering connections
+
+<#
+az network vnet peering create \
+    --name SalesVNet-To-MarketingVNet \
+    --remote-vnet MarketingVNet \
+    --resource-group learn-65304589-58f1-47fe-8781-e109d60d4900 \
+    --vnet-name SalesVNet \
+    --allow-vnet-access
+
+###Run the following command to create a reciprocal connection from MarketingVNet to SalesVNet. This step completes the connection between these virtual networks.
+
+
+az network vnet peering create \
+    --name MarketingVNet-To-SalesVNet \
+    --remote-vnet SalesVNet \
+    --resource-group learn-65304589-58f1-47fe-8781-e109d60d4900 \
+    --vnet-name MarketingVNet \
+    --allow-vnet-access
+#>
+### Check the virtual network peering connections
+<#
+az network vnet peering list \
+    --resource-group learn-65304589-58f1-47fe-8781-e109d60d4900 \
+    --vnet-name SalesVNet \
+    --query "[].{Name:name, Resource:resourceGroup, PeeringState:peeringState, AllowVnetAccess:allowVirtualNetworkAccess}"\
+    --output table
+
+
+#>
+
+### Check effective routes
+#Run the following command to look at the routes that apply to the SalesVM network interface
+<#
+az network nic show-effective-route-table \
+    --resource-group learn-65304589-58f1-47fe-8781-e109d60d4900 \
+    --name SalesVMVMNic \
+    --output table
+#>
+
+<# querys the vms for name private and public ips
+az vm list \
+    --resource-group learn-65304589-58f1-47fe-8781-e109d60d4900 \
+    --query "[*].{Name:name, PrivateIP:privateIps, PublicIP:publicIps}" \
+    --show-details \
+    --output table
+
+
+Name         PrivateIP    PublicIP
+-----------  -----------  --------------
+MarketingVM  10.2.1.4     4.245.199.73
+SalesVM      10.1.1.4     4.245.198.228
+ResearchVM   10.3.1.4     20.160.124.226
+#>
+
+###Create a route table and custom route
+
+#Create a route table
+<#
+az network route-table create \
+        --name publictable \
+        --resource-group learn-0ac4a860-66e2-4348-8826-58b029956dd0 \
+        --disable-bgp-route-propagation false
+#>
+
+# Create a custon route
+<#
+az network route-table route create \
+        --route-table-name publictable \
+        --resource-group learn-0ac4a860-66e2-4348-8826-58b029956dd0 \
+        --name productionsubnet \
+        --address-prefix 10.0.1.0/24 \
+        --next-hop-type VirtualAppliance \
+        --next-hop-ip-address 10.0.2.4
+#>
+
+# associate route table with public subnet.
+<#
+az network vnet subnet update \
+        --name publicsubnet \
+        --vnet-name vnet \
+        --resource-group learn-0ac4a860-66e2-4348-8826-58b029956dd0 \
+        --route-table publictable
+#>
+
+#create a new public IP address
+$Location = $(Get-AzureRmResourceGroup -ResourceGroupName learn-dd3518c2-d217-4e21-8b38-7738b09a673b).Location
+
+$publicIP = New-AzPublicIpAddress `
+  -ResourceGroupName learn-dd3518c2-d217-4e21-8b38-7738b09a673b `
+  -Location $Location `
+  -AllocationMethod "Static" `
+  -Name "myPublicIP"
+
+#Create a front-end IP by using the New-AzLoadBalancerFrontendIpConfig cmdlet
+$frontendIP = New-AzLoadBalancerFrontendIpConfig -Name "myFrontEnd" -PublicIpAddress $publicIP
+
+#When you use PowerShell to configure a load balancer, you must create the back-end address pool, the health probe, and the rule before you create the balancer itself.
+#Create a back-end address pool by running the New-AzLoadBalancerBackendAddressPoolConfig cmdlet.
+$backendPool = New-AzLoadBalancerBackendAddressPoolConfig -Name "myBackEndPool"
+
+#To allow the load balancer to monitor the status of the healthcare portal, create a health probe. The health probe dynamically adds or removes VMs from the load balancer rotation based on their response to health checks.
+$probe = New-AzLoadBalancerProbeConfig -Name "myHealthProbe" -Protocol http -Port 80 -IntervalInSeconds 5 -ProbeCount 2 -RequestPath "/"
+
+#You now need a load balancer rule that's used to define how traffic is distributed to the VMs. You define the front-end IP configuration for the incoming traffic and the back-end IP pool to receive the traffic, along with the required source and destination port. To make sure only healthy VMs receive traffic, you also define the health probe to use.
+$lbrule = New-AzLoadBalancerRuleConfig -Name "myLoadBalancerRule" -FrontendIpConfiguration $frontendIP -BackendAddressPool $backendPool -Protocol Tcp -FrontendPort 80 -BackendPort 80 `
+  -Probe $probe
+
+#Now, you can create the basic load balancer by running the New-AzLoadBalancer cmdlet.
+$lb = New-AzLoadBalancer `
+  -ResourceGroupName learn-dd3518c2-d217-4e21-8b38-7738b09a673b `
+  -Name 'MyLoadBalancer' `
+  -Location $Location `
+  -FrontendIpConfiguration $frontendIP `
+  -BackendAddressPool $backendPool `
+  -Probe $probe `
+  -LoadBalancingRule $lbrule
+
+  #Connect the VMs to the back-end pool by updating the network interfaces that the script created to use the back-end pool information.
+$nic1 = Get-AzNetworkInterface -ResourceGroupName learn-dd3518c2-d217-4e21-8b38-7738b09a673b -Name "webNic1"
+$nic2 = Get-AzNetworkInterface -ResourceGroupName learn-dd3518c2-d217-4e21-8b38-7738b09a673b -Name "webNic2"
+
+$nic1.IpConfigurations[0].LoadBalancerBackendAddressPools = $backendPool
+$nic2.IpConfigurations[0].LoadBalancerBackendAddressPools = $backendPool
+
+Set-AzNetworkInterface -NetworkInterface $nic1 -AsJob
+Set-AzNetworkInterface -NetworkInterface $nic2 -AsJob
+
+#Run the following command to get the public IP address of the load balancer and the URL for your website.
+Write-Host http://$($(Get-AzPublicIPAddress -ResourceGroupName learn-dd3518c2-d217-4e21-8b38-7738b09a673b -Name "myPublicIP").IpAddress)
+
+
+# Register resource provider
+Register-AzResouceProvider -ProviderNamespace Microsoft.Insights
+
+#You can also use the PowerShell Set-AzVmCustomScriptExtension command to run scripts with Custom Script Extensions. This command requires the URI for the script in the blob container.
+Set-AzVmCustomScriptExtension -FileUri https://scriptstore.blob.core.windows.net/scripts/Install_IIS.ps1 -Run "PowerShell.exe" -VmName vmName `
+ -ResourceGroupName resourceGroup -Location "location"
+
+ ###Create a Linux VM with the Azure CLI
+ <#
+ az vm create \
+  --resource-group learn-287d5f2c-b2c1-4586-af8b-464372600432 \
+  --location westus \
+  --name SampleVM \
+  --image UbuntuLTS \
+  --admin-username azureuser \
+  --generate-ssh-keys \
+  --verbose
+ #>
+ #Listing images
+ az vm image list --output table
+ #Getting all images --all flag
+ # eg try the following command to see all Wordpress images available:
+ az vm image list --sku Wordpress --output table --all
+ <#
+ Or this command to see all images provided by Microsoft:
+
+
+az vm image list --publisher Microsoft --output table --all
+ #>
+
+ <#
+ Some images are only available in certain locations. Try adding the --location [location] flag to the 
+ command to scope the results to ones available in the region where you want to create the virtual machine. 
+ For example, type the following into Azure Cloud Shell to get a list of images available in the eastus region.
+
+
+az vm image list --location eastus --output table
+ #>
+
+<#
+The available sizes change based on the region in which you're creating the VM. You can get a list of the available sizes using the vm list-sizes command. Try typing the following into Azure Cloud Shell:
+#>
+
+az vm list-sizes --location eastus --output table
+
+<#
+Specify a size during VM creation
+We didn't specify a size when we created our VM, so Azure selected a default general-purpose size for us. However, 
+we can specify the size as part of the vm create command using the --size parameter. For example, 
+you could use the following command to create a 2-core virtual machine:
+
+
+az vm create \
+    --resource-group learn-287d5f2c-b2c1-4586-af8b-464372600432 \
+    --name SampleVM2 \
+    --image UbuntuLTS \
+    --admin-username azureuser \
+    --generate-ssh-keys \
+    --verbose \
+    --size "Standard_DS2_v2"
+#>
+
+<#
+Resize an existing VM
+We can also resize an existing VM if the workload changes or if it was incorrectly sized at creation. 
+Let's use the first VM we created, SampleVM. Before requesting a resize, we must check to see if the desired size is available in the cluster our VM is part of. 
+We can do this with the vm list-vm-resize-options command:
+
+
+az vm list-vm-resize-options \
+    --resource-group learn-287d5f2c-b2c1-4586-af8b-464372600432 \
+    --name SampleVM \
+    --output table
+#>
+
+<#
+To resize a VM, we use the vm resize command. For example, perhaps we find our VM is underpowered for the task we want it to perform. 
+We could bump it up to a D2s_v3, where it has 2 vCores and 8 GB of memory. 
+Type this command in Cloud Shell:
+
+
+az vm resize \
+    --resource-group learn-287d5f2c-b2c1-4586-af8b-464372600432 \
+    --name SampleVM \
+    --size Standard_D2s_v3
+This command will take a few minutes to reduce the resources of the VM, and once it's done, it will return a new JSON configuration.
+
+
+#>
+
+#                   Exercise - Query system and runtime information about the VM
+
+<#
+Now that a virtual machine has been created, we can get information about it through other commands.
+
+Let's start by running vm list.
+
+
+az vm list
+#>
+
+<#
+Get the IP address
+Another useful command is vm list-ip-addresses, which will list the public and private IP addresses for a VM. If they change, or you didn't capture them during creation, you can retrieve them at any time.
+
+Azure CLI
+
+Copy
+az vm list-ip-addresses -n SampleVM -o table
+This returns output like:
+
+
+Copy
+VirtualMachine    PublicIPAddresses    PrivateIPAddresses
+----------------  -------------------  --------------------
+SampleVM          168.61.54.62         10.0.0.4
+#>
+
+<#
+Get VM details
+We can get more detailed information about a specific virtual machine by name or ID running the vm show command.
+
+
+az vm show --resource-group learn-287d5f2c-b2c1-4586-af8b-464372600432 --name SampleVM
+#>
+
+<#
+Filter your Azure CLI queries
+With a basic understanding of JMES queries, we can add filters to the data being returned by queries like the vm show command. For example, we can retrieve the admin username:
+
+Azure CLI
+
+Copy
+az vm show \
+    --resource-group learn-287d5f2c-b2c1-4586-af8b-464372600432 \
+    --name SampleVM \
+    --query "osProfile.adminUsername"
+We can get the size assigned to our VM:
+
+Azure CLI
+
+Copy
+az vm show \
+    --resource-group learn-287d5f2c-b2c1-4586-af8b-464372600432 \
+    --name SampleVM \
+    --query hardwareProfile.vmSize
+Or, to retrieve all the IDs for your network interfaces, you can run the query:
+
+Azure CLI
+
+Copy
+az vm show \
+    --resource-group learn-287d5f2c-b2c1-4586-af8b-464372600432 \
+    --name SampleVM \
+    --query "networkProfile.networkInterfaces[].id"
+#>
+
+#       Exercise - Start and stop your VM with the Azure CLI
+
+<#
+Stop a VM
+We can stop a running VM with the vm stop command. You must pass the name and resource group, or the unique ID for the VM:
+
+Azure CLI
+
+Copy
+az vm stop \
+    --name SampleVM \
+    --resource-group learn-287d5f2c-b2c1-4586-af8b-464372600432
+We can verify the VM has stopped by attempting to ping the public IP address, using ssh, or through the vm get-instance-view command. This final approach returns the same basic data as vm show, but includes details about the instance itself. Try entering the following command into Azure Cloud Shell to see the current running state of your VM:
+
+Azure CLI
+
+Copy
+az vm get-instance-view \
+    --name SampleVM \
+    --resource-group learn-287d5f2c-b2c1-4586-af8b-464372600432 \
+    --query "instanceView.statuses[?starts_with(code, 'PowerState/')].displayStatus" -o tsv
+This command should return VM stopped as the result.
+
+Start a VM
+We can do the reverse through the vm start command.
+
+Azure CLI
+
+Copy
+az vm start \
+    --name SampleVM \
+    --resource-group learn-287d5f2c-b2c1-4586-af8b-464372600432
+This command will start a stopped VM. We can verify it through the vm get-instance-view query we used in the last section, which should now return VM running.
+
+Restart a VM
+Finally, we can restart a VM if we have made changes that require a reboot running the vm restart command. You can add the --no-wait flag if you want the Azure CLI to return immediately without waiting for the VM to reboot.
+#>
+
+#           Exercise - Install software on your VM
+<#
+Install NGINX web server
+Locate the public IP address of your SampleVM Linux virtual machine.
+
+Azure CLI
+
+Copy
+az vm list-ip-addresses --name SampleVM --output table
+Next, open an ssh connection to SampleVM.
+
+Bash
+
+Copy
+ssh azureuser@<PublicIPAddress>
+After you're logged in to the virtual machine, run the following command to install the nginx web server. The command will take a few moments to complete.
+
+Bash
+
+Copy
+sudo apt-get -y update && sudo apt-get -y install nginx
+Exit the Secure Shell.
+
+Bash
+
+Copy
+exit
+Retrieve your default page
+In Azure Cloud Shell, use curl to read the default page from your Linux web server by running the following command, replacing <PublicIPAddress> with the public IP you found previously. You can also open a new browser tab and try to browse to the public IP address.
+
+Bash
+
+Copy
+curl -m 80 <PublicIPAddress>
+This command will fail, because the Linux virtual machine doesn't expose port 80 (http) through the network security group that secures the network connectivity to the virtual machine. We can fix the failure by running the Azure CLI command vm open-port.
+
+Enter the following command into Cloud Shell to open port 80:
+
+Azure CLI
+
+Copy
+az vm open-port \
+    --port 80 \
+    --resource-group learn-287d5f2c-b2c1-4586-af8b-464372600432 \
+    --name SampleVM
+It will take a moment to add the network rule and open the port through the firewall.
+
+Run the curl command again.
+
+Bash
+
+Copy
+curl -m 80 <PublicIPAddress>
+This time it should return data like the following. You can see the page in a browser as well.
+
+HTML
+
+Copy
+<!DOCTYPE html>
+<html>
+<head>
+<title>Welcome to nginx!</title>
+<style>
+body {
+    width: 35em;
+    margin: 0 auto;
+    font-family: Tahoma, Verdana, Arial, sans-serif;
+}
+</style>
+</head>
+<body>
+<h1>Welcome to nginx!</h1>
+<p>If you see this page, the nginx web server is successfully installed and
+working. Further configuration is required.</p>
+
+<p>For online documentation and support, refer to
+<a href="http://nginx.org/">nginx.org</a>.<br/>
+Commercial support is available at
+<a href="http://nginx.com/">nginx.com</a>.</p>
+
+<p><em>Thank you for using nginx.</em></p>
+</body>
+</html>
+#>
+
+#dsc snippet
+<#
+Configuration Create_Share
+{
+   Import-DscResource -Module xSmbShare
+   # A node describes the VM to be configured
+
+   Node $NodeName
+   {
+      # A node definition contains one or more resource blocks
+      # A resource block describes the resource to be configured on the node
+      xSmbShare MySMBShare
+      {
+          Ensure      = "Present"
+          Name        = "MyFileShare"
+          Path        = "C:\Shared"
+          ReadAccess  = "User1"
+          FullAccess  = "User2"
+          Description = "This is an updated description for this share"
+      }
+   }
+}
+#>
+<#
+Configuration MyDscConfiguration {              ##1
+  Node "localhost" {                          ##2
+      WindowsFeature MyFeatureInstance {      ##3
+          Ensure = 'Present'
+          Name = 'Web-Server'
+      }
+  }
+}
+MyDscConfiguration -OutputPath C:\temp\         ##4
+#>
+
+#Node @('WEBSERVER1', 'WEBSERVER2', 'WEBSERVER3')
+#this is a node block if you want to include the names of more than one server.
+
+
