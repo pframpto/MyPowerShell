@@ -1,0 +1,3 @@
+write scipt that opens a job that waits for a time then does its stuff.
+an example of how this might work is give a user group access to admins for 30 minutes then run a command to remove it.
+
