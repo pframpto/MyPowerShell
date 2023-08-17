@@ -42,6 +42,31 @@ Resolve-DnsName example.com -Type MX
 #dhcp refresh
 Invoke-Command -ScriptBlock { ipconfig /renew } -ComputerName .
 
+#region Firewall
+
+    # Enable firewall for all profiles
+    Set-NetFirewallProfile -Profile Domain,Public,Private -Enabled True
+
+    # Disable firewall for all profiles
+    Set-NetFirewallProfile -Profile Domain,Public,Private -Enabled False
+
+    # Create an inbound rule to allow ICMP Echo Requests (ping)
+    New-NetFirewallRule -DisplayName "Allow ICMP Echo Requests" -Protocol ICMPv4 -IcmpType 8 -Action Allow
+
+    # Allow port 8080
+    New-NetFirewallRule -DisplayName "Allow Port 8080" -Direction Inbound -LocalPort 8080 -Action Allow
+
+    # rename a rule
+    Set-NetFirewallRule -DisplayName "Old Rule Name" -DisplayName "New Rule Name"
+
+    # enable or disable firewall rules
+    Disable-NetFirewallRule -DisplayName "Rule Name"
+    Enable-NetFirewallRule -DisplayName "Rule Name"
+
+    # remove a firewall rule
+    Remove-NetFirewallRule -DisplayName "Rule Name"
+
+#endregion
 
 
 #Think of other things to add.
