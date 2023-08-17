@@ -21,3 +21,8 @@ $string2 = " this is the second string   "
 $string2.Trim() # Takes out the spaces from the start and end of the string in output.
 $string2.TrimEnd() # Removes the spaces from the end
 $string2.TrimStart() # Removes the spaces from the start in output.
+
+
+$string3 = "###this is the third string##"
+$string3.TrimStart("#") # removes the hashes from the start of the string
+$string3.Replace("#","$") # replaces the hashes with dollar signs.
