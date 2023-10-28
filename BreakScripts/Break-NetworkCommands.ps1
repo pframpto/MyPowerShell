@@ -68,6 +68,9 @@ Invoke-Command -ScriptBlock { ipconfig /renew } -ComputerName .
 
 #endregion
 
+# nestsh is like Get-NetTCPConnection
+
+(Get-NetTCPConnection).RemoteAddress | Where {$_ -notlike "52.*" -and $_ -notlike "::" -and $_ -notlike "0.0.0.0"}
 
 #Think of other things to add.
 
