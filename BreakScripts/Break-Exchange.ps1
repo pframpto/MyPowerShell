@@ -1,5 +1,6 @@
 ﻿Break;
 
+get-mailbox
 
 #region Creating a PST
 New-MailboxExportRequest -Mailbox Mailbox -FilePath '\\fileserver\psts\Mailbox.pst' 
@@ -57,4 +58,19 @@ Set-Mailbox -Identity "forwardingMailbox@example.com.au" -ForwardingAddress  "Fo
     get-mailbox John.Doe@example.com | New-MoveRequest -TargetDatabase EXBD01
     Get-MoveRequest 
     
+#endregion
+
+#region mailbox database
+New-mailboxDatabase -name "Marketing" -EdbFilePath e:\Marketing\marketing.edb -server EX01 #This creates the database but does not mount it
+Mount-Database -Identity Marketing
+Get-MailboxDatabase #this will show the different mailboxes
+Set-MailboxDatabase
+Move-DatabasePath -Identity "Marketing" -EdbFilePath c:\marketing\marketing.edb -LogFolderPath c:\marketing
+
+#endregion
+
+#region restart Microsoft Exchange Information Store Service
+
+Restart-Service MSExchangeIS
+
 #endregion
