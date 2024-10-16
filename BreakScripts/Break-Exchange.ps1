@@ -44,6 +44,19 @@ Set-Mailbox -Identity "forwardingMailbox@example.com.au" -ForwardingAddress  "Fo
 #endregion
     
 #region GAL and Address Lists
+    Get-AddressBookPolicy 
+    Get-AddressList
+    Get-GlobalAddresslist
+    #offline address book
+    Get-OfflineAddressBook
+    Get-AddressList
+    New-OfflineAddressBook -Name "Marketing OAB" -AddressLists "Marketing" 
+    Get-OfflineAddressBook "Marketing OAB" | Update-OfflineAddressBook
+
+    #New address book policy
+    New-AddressBookPolicy -Name "Test ABP" -AddressLists "\All Contacts","\All Users","\Marketing" `
+    -RoomList "\All Rooms" -GlobalAddressList "\Default Global Address List" -OfflineAddressBook "\Default Offline Address Book"
+
     #Remove from GAL
     Get-Mailbox removedFromGalMailbox | Set-Mailbox -HiddenFromAddressListsEnabled $true
     #Updating Address lists
@@ -134,5 +147,23 @@ New-Mailbox -name Projector2 -Displayname "Projector 2" -Equipment
 Set-Mailbox
 Enable-Mailbox
 Remove-Mailbox
+
+#endregion
+
+#region mailbox policy
+New-MobileDeviceMailboxPolicy -Name "Marketing Mobile Control" -PasswordEnabled $true -AlphanumericPasswordRequired $true -PasswordRecoveryEnabled $true -MinPasswordComplexCharacters 3 -IsDefault $false -PasswordHistory 10
+ # Mobile >> Mobile device access >> Device Access Rules 
+New-ActiveSyncDeviceAccessRule -Characteristic DeviceOS -QueryString "Android 3.0.0" -AccessLevel Block 
+#endregion
+
+#region DAGs
+New-DatabaseAvailabilityGroup -Name DAG1 -WitnessServer FILESRV1 -WitnessDirectory C:\DAG1
+New-DatabaseAvailabilityGroup -Name DAG3 -WitnessServer MBX2 -WitnessDirectory C:\DAG3 -DatabaseAvailabilityGroupIPAddresses 10.0.0.8,192.168.0.8
+New-DatabaseAvailabilityGroup -Name DAG5 -DatabaseAvailabilityGroupIPAddresses ([System.Net.IPAddress]::None) -WitnessServer MBX4
+Get-DatabaseAvailabilityGroup `<DAGName`> | Format-List
+
+Get-MailboxDatabaseCopyStatus 
+Test-ReplicationHealth
+
 
 #endregion
