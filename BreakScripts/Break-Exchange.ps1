@@ -167,3 +167,82 @@ Test-ReplicationHealth
 
 
 #endregion
+
+#region public folders
+Disable-MailPublicFolder
+Enable-MailPublicFolder
+Get-MailPublicFolder
+Get-PublicFolder
+New-PublicFolder
+New-SyncMailPublicFolder
+Remove-PublicFolder
+Remove-SyncMailPublicFolder
+Set-MailPublicFolder
+Set-PublicFolder
+
+Get-PublicFolder \marketing -Recurse
+New-PublicFolder -Name Finance
+New-PublicFolder -Name Reports -Path \Finance
+
+#endregion
+
+#region Virtual Directory
+
+Get-OwaVirtualDirectory | select *ternalUrl
+Set-OwaVirtualDirectory # use this to set the internalurl and the externalurl
+get-oabvirtualdirectory
+get-websericesvirtualdirectory
+get-outlookanywhere
+get-mapivirtualdirectory
+#these can all be piped to the corresponding set command with the correct options for internalurl and externalurl
+#endregion
+
+#region client access rules
+#https://learn.microsoft.com/en-us/powershell/module/exchange/new-clientaccessrule?view=exchange-ps
+Get-clientAccessRule
+New-ClientAccessRule -Name AllowRemotePS -Action Allow -AnyOfProtocols RemotePowerShell -Priority 1
+
+#endregion
+
+
+#region backup and restoration.
+Get-mailbox janwilliams@exampractice.com | fl name,database,guid
+#save the guid $guid = "f1d7e6f2-8520-432f-a5ef-24cb86a6a6ea"
+#setup backup on ex server
+#Create a network share to store backup.
+#do full server backup backing up to that share.
+
+#restoration
+#-----------
+#an email has been purged and we want to restore it.
+# In windows server backup click recover use share as the backup from
+# in recovery type choose application and out of application select exchange select do not perform a roll forward recovery of app dbs.
+#      Recover to another location choose a new folder you can call it restore if you want. Then click recover.
+# in the EMS
+Get-mailboxdatabase -ID "Marketing" | fl name,guid,edbfilepath,logfolderpath
+#name : Marketing
+#Guid : dbd2ff1c-e6f0-4aa6-b62b-69ad69dfadcb
+#EDBfilepath : C:\marketing\marketing.edb
+#logfolderpath : C:\marketing
+#now we create a recovery db
+New-MailboxDatabase -Recovery -Name RecoveryDB -EdbFilePath "C:\restore\dbd2ff1c-e6f0-4aa6-b62b-69ad69dfadcb\C_\marketing\marketing.edb" `
+-LogFilePath "C:\restore\dbd2ff1c-e6f0-4aa6-b62b-69ad69dfadcb\C_\marketing\" -Server NYC-EX1 
+
+Restart-Service MSExchangeIS
+# now we need to use the eseutil to make sure the database is in a clean shutdown state.
+CD "C:\restore\dbd2ff1c-e6f0-4aa6-b62b-69ad69dfadcb\C_\marketing\"
+eseutin /r e02 /d 
+
+mount-database RecoveryDB
+
+Get-MailboxStatistics -Database RecoveryDB 
+
+New-MailboxRestoreRequest -SourceDatabase RecoveryDB -SourceStoreMailbox "jan williams" -TargetMailbox janwilliams@exampractice.com 
+# it says it is qued use:
+Get-MailboxRestoreRequest 
+# to check its progress it will say in progress then completed when it is finished.
+# now going back to the owa the email deleted at the start has been restored.
+
+
+
+#endregion
