@@ -99,3 +99,25 @@ Remove-ClientAccessRule -Identity "Block ActiveSync"
  start chrome https://testconnectivity.microsoft.com/  #Microsoft Remote Connectivity Analyzer
 
 #endregion
+
+#region Managing compliance for exchange online
+Enable-Mailbox -Identity johnsmith@company.com -Archive
+"For all users who don't have the archive enabled"
+Get-Mailbox -Filter {ArchiveStatus -eq 'none' -AND RecipientTypeDetails -Eq 'UserMailbox'} | Enable-Mailbox -Archive
+"Finding inactive mailboxes"
+Get-Mailbox -InactiveMailboxOnly -ResultSize unlimited
+"Enabling an inactive mailbox"
+start chrome "https://learn.microsoft.com/en-us/purview/restore-an-inactive-mailbox"
+$InactiveMailbox = Get-Mailbox -InactiveMailboxOnly -Identity js@company.com
+$inactiveMailbox.LegacyExchangeDN
+"Add the LegacyExchangeDN of the inactive mailbox as an X500 proxy address to the target mailbox."
+Set-Mailbox $InactiveMailbox.identity -EmailAddresses @{Add="X500:<LegacyExchangeDN of inactive mailbox>"}
+New-MailboxRestoreRequest -SourceMailbox $inactiveMailbox.DistinguishedName -TargetMailbox $InactiveMailbox.identity
+"or"
+New-MailboxRestoreRequest -SourceMailbox $InactiveMailbox.DistinguishedName -TargetMailbox <identity of target mailbox> -TargetRootFolder "Inactive Mailbox"
+"AUDITING"
+Search-AdminAuditLog
+Search-AdminAuditLog -Cmdlets New-RoleGroup,New-ManagementRoleAssignment
+
+#endregion
+

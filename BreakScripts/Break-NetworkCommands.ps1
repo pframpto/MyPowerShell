@@ -37,7 +37,9 @@ Resolve-DnsName example.com
 Resolve-DnsName -Name 8.8.8.8 -Type PTR
 Resolve-DnsName example.com -Type MX
 
-
+#set trusted hosts
+winrm set winrm/config/client '@{TrustedHosts="192.168.127.130"}'
+# Where ip is the other machine do this on both machines when you are not using AD
 
 #dhcp refresh
 Invoke-Command -ScriptBlock { ipconfig /renew } -ComputerName .
