@@ -76,3 +76,10 @@ Invoke-Command -ScriptBlock { ipconfig /renew } -ComputerName .
 
 #Think of other things to add.
 
+Get-Ciminstance Win32_NetworkAdapter
+
+Get-DnsClientCache
+
+Get-NetNeighbor
+
+Get-NetRoute
