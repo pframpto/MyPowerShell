@@ -1,0 +1,1 @@
+(Get-Counter "\Memory\Available MBytes").CounterSamples.CookedValue
