@@ -1,0 +1,15 @@
+winget install --id chocolatey.chocolatey --source winget
+choco install git -y
+choco install vscode -y
+choco install pwsh -y
+Md c:\MyGit
+md c:\MyBitBucket
+md c:\MyBitBucket\LALaw
+md c:\MyBitBucket\Old
+cd \MyGit
+git clone https://github.com/pframpto/MyPowerShell.git .
+CD c:\MyBitBucket\LALaw
+git clone https://pframpto@bitbucket.org/pframpto/lalaw.git .
+## log on to bitbucket and you will need authenticator app.
+CD ../Old
+git clone https://pframpto@bitbucket.org/pframpto/oldscripts.git .
