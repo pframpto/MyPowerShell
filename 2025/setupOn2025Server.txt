@@ -1,4 +1,5 @@
 winget install --id chocolatey.chocolatey --source winget
+# winget install --id Microsoft.PowerShell --source winget
 choco install git -y
 choco install vscode -y
 choco install pwsh -y
