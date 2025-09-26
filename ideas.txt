@@ -1,3 +1,5 @@
 write scipt that opens a job that waits for a time then does its stuff.
 an example of how this might work is give a user group access to admins for 30 minutes then run a command to remove it.
+script that goes through the registry and looks for uninstall strings for various products.
+
 
