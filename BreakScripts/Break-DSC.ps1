@@ -183,6 +183,104 @@ WindowsFeature [String] #ResourceName
 
 #endregion
 
+#region Configuration Data
+
+    #you can parameterise a configuration
+
+    Configuration FileServerConfig{
+        param([string[]]$computerName)
+
+        Node $computerName {
+            WindowsFeature FileServer {
+                Name = 'FS-FileServer'
+                Ensure = 'Present'
+            }
+            WindowsFeature DataDedup {
+                Name = 'FS-Data-Deduplication'
+                Ensure = 'Present'
+            }
+        }
+    }
+
+    FileServerConfig -OutputPath c:\dsc -computerName 'LonSVR1','LonSVR2','LonDC1'
+
+    ###
+    #Another way to do this is with a hash table configuration data
+    #the configuration data can be stored in the same file or as a psd1 file.
+
+
+     Configuration FileServerConfig{
+       
+        Node $AllNodes.Where({$_.Roles -contains 'FileServer'}).NodeName {
+            WindowsFeature FileServer {
+                Name = 'FS-FileServer'
+                Ensure = 'Present'
+            }
+            WindowsFeature DataDedup {
+                Name = 'FS-Data-Deduplication'
+                Ensure = 'Present'
+            }
+        }
+    }
+
+    FileServerConfig -OutputPath c:\dsc -ConfigurationData $CD
+
+    #configuration Data 
+
+   $CD = @{
+            AllNodes = @(
+                @{
+                    NodeName = 'LonSVR1'
+                    Roles = @(
+                        'FileServer'
+                    )
+                    Location = 'EU'
+                }
+                @{
+                    NodeName = 'LonDC1'
+                    Roles = @(
+                        'DNS',
+                        'DC'
+                    )
+                    Location = 'EU'
+                }
+            )
+        }
+
+# Or configuration data can be a file named something.psd1 then you would add the path to the psd1 file.
+
+#endregion
+
+#region pushing DSC configs
+
+Start-DscConfiguration -Path C:\dsc -Wait -Verbose
+
+#the wait foregrounds the job the default is to run it in the background.
+
+#you can have multiple mof files in your path if you only want to push the configuration down to one or more computers use -computername 
+
+#you need powershell remoting on the endpoint and admin rights on the push server.
+
+#endregion
+
+#region overview of the pull model
+    <#
+    * On-prem Pull server or Azure DSC Automation
+
+    * Can use pull for
+        - Configurations
+        - Resource modules
+        - Centralized reporting
+    
+    * Requires registration
+    
+    * Configurations must be ckeck summed 
+    #>
+
+#endregion
+
+
+
 
 
 
