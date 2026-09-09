@@ -14,14 +14,20 @@ $Param = @{
 }
 New-ADUser @param 
 
+New-ADUser -Name "Knox Hutchinson" -GivenName "Knox" -Surname "Hutchinson" -SamAccountName "Knox.Hutchinson" `
+-AccountPassword (ConvertTo-SecureString -AsPlainText "Welcome2020!" -Force) -UserPrincipalName "knox.hutchinson@company.pri" `
+-Enabled $true -Path "OU=NewUsers,DC=Company,DC=pri" `
+-OtherAttributes @{"mail" = "khutchinson@company.pri"}
+
 #endregion
 
-#region Create Group
+#region Working with groups
+
+# using get
+Get-ADGroup -filter {GroupCategory -eq "Security" -and GroupScope -eq "Universal"}
 
 New-ADGroup -Name 'GroupName' -GroupScope Global -Path "OU=CompanyUsers,DC=mycompany,DC=pri" 
-#endregion
 
-#region Add user to Group
 
 Add-ADGroupMember -Identity GroupName -Members "FirstName.LastName"
 
@@ -85,5 +91,26 @@ $param = @{'CreateDnsDelegation'=$false;
           }
 
 Install-ADDSForest @param -SafeModeAdministratorPassword (convertTo-SecureString -AsPlainText "P@ssw0rd" -Force )
+
+#endregion
+
+#region set password
+
+Set-ADAccountPassword -Identity candy.spoon -NewPassword (ConvertTo-SecureString -AsPlainText "P@ssw0rd1" -Force)
+Get-ADUser -Identity candy.spoon | Set-ADUser -ChangePasswordAtLogon $true
+    #set-aduser -Identity candy.spoon -ChangePasswordAtLogon $true
+
+
+#endregion
+
+#region using the AD:\ PS drive
+Get-PSDrive AD
+
+Get-ChildItem AD:
+
+Get-ChildItem 'AD:\DC=Company,DC=pri' #context sensitive messaging shows subdirectories you can use
+Get-ChildItem 'AD:\DC=Company,DC=pri' | Where-Object { $_.objectclass -eq 'organizationalUnit'}
+Get-ChildItem 'AD:\OU=CurtinUsers,DC=Company,DC=pri' # you can change the distinguished name to see what is inside that container
+
 
 #endregion
