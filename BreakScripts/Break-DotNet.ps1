@@ -49,6 +49,78 @@ foreach($file in $dirs){
 #endregion
 
 #region array types
+    #list array
+    [system.collections.Arraylist]$myArray = @()
+    1..20 | ForEach-Object {$myArray.add($_)}
+
+    #generic list
+    $results = [System.Collections.Generic.List[object]]::new() 
+    1..20 | ForEach-Object {$results.add($_)}
+
+    #hash arrays
+    $set = [System.Collections.Generic.HashSet[string]]::new()
+    # Members are unique
+    $members = "Australia","New Zealand","England","France","Japan","Thailand","Australia","Japan"
+    foreach($member in $members){
+        $set.Add($member)
+    }
+    
+<#
+using namespace System.Collections.Generic
+
+$myList = [List[string]]::new()
+
+"hit","miss","next","word" | % {$myList.Add($_)}
+
+break;
+
+#you can cast an existing array into a list like this
+$existingArray = 1..5
+$fromArray = [List[int]]$existingArray
+$fromArray.Add(6)
+$fromArray
+
+#you can add pipeline input into a list
+$pipeList = [List[string]]::new()
+Get-ChildItem $PSScriptRoot -Filter *.ps1 | ForEach-Object {$pipeList.Add($_.Name)}
+$pipeList
+
+<# TLDR
+Need Fixed size? Array
+Need resizable typed? List<T>
+Key-Value pairs? Dictionary<Tkey,Tvalue>
+No duplicates HashSet<T>
+Fair ordering Queue<t>
+Reverse ordering Stack<T>
+Multiple threads? System.Collections.Concurrent.*
+Legacy code from 2001 Hashtable /ArrayList
+#>
+
+<#Hash set
+Key characteristics and usage include:
+
+Creation: Instantiate a typed HashSet using [System.Collections.Generic.HashSet[Type]]::new(), 
+such as [System.Collections.Generic.HashSet[string]]::new() for strings. 
+Uniqueness: The collection automatically rejects duplicates; 
+    the .Add() method returns $true if the item was new and $false if it already existed. 
+Performance: It is much faster than using -Unique with Select-Object or Sort-Object for large datasets,
+ making it ideal for de-duplicating lists or validating unique elements. 
+Set Operations: It supports efficient in-place set theory methods like .UnionWith(), .IntersectWith(), 
+and .ExceptWith() to combine, compare, or remove elements between sets. 
+Limitations: HashSets are case-sensitive by default (e.g., "Apple" and "apple" are distinct) 
+and do not support index-based access; elements must be iterated or converted to an array for ordered access. 
+#>
+
+function d4c {
+   $searchItem = $lookupData[-1]
+
+   $null = $lookupData -contains $searchItem
+   
+   $hashSetForContains = [HashSet[string]]::new([string[]]$lookupData)
+   $null = $hashSetForContains.Contains($searchItem)
+    
+}
+#>
 
 #endregion
 
@@ -72,13 +144,24 @@ foreach($file in $dirs){
 
 #endregion
 
+#region dot net file.copy
+
+$source = "C:\temp\burn.txt"
+$destination = "D:\Curtin\ZZ\burn.txt"
+[System.IO.File]::Copy($source, $destination, $true)
 
 
+#endregion
 
-$accessInfos = New-Object System.Security.AccessControl.DirectorySecurity("c:\temp", 6)
+
+$accessInfos = New-Object System.Security.AccessControl.DirectorySecurity("D:\Curtin\ITS", 6)
 foreach($access in $accessInfos.Access){
-    if($access.identityReference -like "BUILTIN\*"){
-        continue
+    if($access.identityReference -like "Company\*" -and $access.IsInherited -eq $false){
+        $access
     }
-    $access
+    
 }
+
+
+$path = "D:\Curtin\ITS"
+Get-NTFSAccess -Path $path  -ExcludeInherited | ConvertTo-Json -OutVariable a
